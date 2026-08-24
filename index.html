@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CostBridge — verified Procore → QuickBooks sync</title>
+<meta name="description" content="A verified sync between Procore/Buildertrend and QuickBooks for construction contractors. In research — looking for beta users.">
+<meta name="robots" content="index, follow">
+<style>
+  :root { --max: 640px; --pad: 24px; --dark: #1a1a1a; --gray: #666; --line: #e0e0e0; --accent: #005; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font: 16px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif; color: var(--dark); max-width: var(--max); margin: 0 auto; padding: calc(var(--pad) * 2) var(--pad); -webkit-font-smoothing: antialiased; }
+  h1 { font-size: 1.6rem; font-weight: 700; margin-bottom: 0.5rem; line-height: 1.3; }
+  h2 { font-size: 1.1rem; font-weight: 600; margin-top: 2.5rem; margin-bottom: 0.75rem; }
+  p { margin-bottom: 1rem; }
+  ul { margin-bottom: 1rem; padding-left: 1.25rem; }
+  li { margin-bottom: 0.4rem; }
+  a { color: var(--accent); text-decoration: underline; }
+  hr { border: none; border-top: 1px solid var(--line); margin: 2rem 0; }
+  .sub { color: var(--gray); font-size: 0.95rem; margin-bottom: 0.25rem; }
+  .beta { background: #f7f7f7; padding: 1rem 1.25rem; border-radius: 6px; margin: 1.5rem 0; }
+  .beta p:last-child { margin-bottom: 0; }
+  form { margin-top: 1.5rem; }
+  label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.25rem; color: var(--gray); }
+  input, textarea { width: 100%; font: inherit; padding: 0.6rem 0.75rem; border: 1px solid var(--line); border-radius: 4px; margin-bottom: 1rem; background: #fff; color: var(--dark); }
+  input:focus, textarea:focus { outline: 2px solid var(--accent); border-color: var(--accent); }
+  textarea { resize: vertical; min-height: 60px; }
+  button { font: inherit; font-weight: 600; padding: 0.7rem 1.5rem; background: var(--dark); color: #fff; border: none; border-radius: 4px; cursor: pointer; }
+  button:hover { background: #333; }
+  .sig { margin-top: 2.5rem; padding-top: 1.5rem; border-top: 1px solid var(--line); font-size: 0.9rem; color: var(--gray); }
+  .sig a { color: var(--gray); }
+  @media (max-width: 480px) { body { padding: var(--pad); } h1 { font-size: 1.4rem; } }
+</style>
+</head>
+<body>
+
+<h1>CostBridge</h1>
+<p class="sub">Verified Procore / Buildertrend → QuickBooks sync. In research.</p>
+
+<hr>
+
+<p>I'm building a sync between construction management software (Procore, Buildertrend) and QuickBooks — specifically the job costing layer that breaks at month-end. Before I build it, I want to make sure I understand the problem correctly.</p>
+
+<h2>The problem (as I understand it)</h2>
+<ul>
+  <li><strong>Cost codes don't map 1-to-1</strong> between Procore/Buildertrend and QuickBooks, so costs land in wrong accounts or fail to sync. The "Cannot use cost code more than once" error is common.</li>
+  <li><strong>Two-way sync causes duplicate entries</strong> and ghost transactions. (Manual entry in QuickBooks while a sync is pending makes it worse.)</li>
+  <li><strong>Change orders in draft status silently fail to sync.</strong> They just don't show up in QuickBooks until approved — sometimes not even then.</li>
+  <li><strong>WIP reconciliation breaks at quarter-end</strong> because the two systems treat retainage and timing differences differently.</li>
+  <li><strong>Payroll sync gaps</strong> — timecards and certain prime contract data aren't supported by existing integrations.</li>
+</ul>
+
+<p>If you're hitting any of these, I'd like to hear about it. I'm trying to understand the shape of the problem before I build the wrong thing.</p>
+
+<h2>What I'm building</h2>
+<p>A one-way sync with rigorous weekly reconciliation — the only setup practitioners seem to trust. Every sync ships with a CI test suite covering the failure modes above, so you can see it handles your actual workflow before it touches your books.</p>
+
+<div class="beta">
+  <p><strong>Beta — looking for 5 contractors.</strong></p>
+  <p>I'll build the sync for your specific setup (your cost codes, your Procore/Buildertrend config, your QuickBooks COA), free, in exchange for feedback on whether it actually solves the problem. You keep the test suite either way.</p>
+</div>
+
+<h2>Is this your problem?</h2>
+<form id="waitlist" onsubmit="return buildMailto(event)">
+  <label for="name">Name</label>
+  <input type="text" id="name" name="name" required autocomplete="name">
+
+  <label for="email">Email</label>
+  <input type="email" id="email" name="email" required autocomplete="email">
+
+  <label for="company">Company</label>
+  <input type="text" id="company" name="company" autocomplete="organization">
+
+  <label for="stack">What are you using? (Procore / Buildertrend / QuickBooks / Sage)</label>
+  <input type="text" id="stack" name="stack" placeholder="e.g. Procore + QuickBooks Online">
+
+  <label for="pain">What's your biggest sync headache at month-end?</label>
+  <textarea id="pain" name="pain" placeholder="The thing that makes you want to throw your keyboard."></textarea>
+
+  <button type="submit">Get in touch</button>
+  <p class="sub" style="margin-top:0.75rem">Opens your email client with the answers pre-filled. No data stored on this site.</p>
+</form>
+<script>
+function buildMailto(e){e.preventDefault();var v=function(id){return(document.getElementById(id).value||'').trim()};var body='Name: '+v('name')+'\nEmail: '+v('email')+'\nCompany: '+v('company')+'\nStack: '+v('stack')+'\n\nPain:\n'+v('pain');window.location.href='mailto:emilio@ascelio.co?subject='+encodeURIComponent('CostBridge beta — '+v('company'))+'&body='+encodeURIComponent(body);return false;}
+</script>
+
+<div class="sig">
+  — Emilio, <a href="https://ascelio.co">ascelio-co</a> &middot; emilio@ascelio.co<br>
+  No tracking. No newsletter. I'll only email you about the beta.
+</div>
+
+</body>
+</html>
